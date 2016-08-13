@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <script src="jquery.js"></script>
+        <script src="lib.js"></script>
+        <script src="background_lib.js"></script>
+        <script src="manage_passwd.js"></script>
+        <style>
+            #nav {
+                width: 100%,
+                background-color: #333;
+                color: #acacac;
+            }
+            #content {
+            }
+            #body {
+                margin: auto;
+                max-width: 700px;
+            }
+            .ft {
+                float: right;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="nav">
+            <a href="view_data.html">View Data</a>
+            <a href="#" id="link_new_key">Apply for new key</a>
+            <a href="#" id="link_new_acct">Apply for new Account</a>
+            <span class="ft">
+                <a href="https://twitter.com/" target="_blank">Twitter</a>
+                <a href="https://www.google.com/" target="_blank">Google</a>
+            </span>
+        </div>
+        <div id="body">
+            <div id="msg"></div>
+            <div id="content"></div>
+            <div id="signup_profile">
+                <hr/>
+                <div>Default signup data</div>
+                <div id="signup_data"></div>
+            </div>
+        </div>
+    </body>
+</html>

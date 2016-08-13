@@ -4,16 +4,31 @@
   "version": "2.0",
   "permissions": [
     "storage",
+    "contextMenus",
     "activeTab", "<all_urls>",
     "tabs", "http://*/*", "https://*/*"
   ],
+  "commands": {
+      "trigger-main-task": {
+          "trigger_main_key": {
+              "default": "Ctrl+Shift+Z"
+          },
+          "description": "Triggers the main task for specific page"
+      }
+  },
   "background": {
-    "scripts": ["lib.js", "background.js"],
+    "scripts": ["lib.js", "background_lib.js", "background.js"],
     "persistent": false
   },
   "web_accessible_resources": [
+      "view_keys.html",
+      "view_keys.js",
       "tab.html",
-      "tab.js"
+      "tab.js",
+      "manage_passwd.html",
+      "manage_passwd.js",
+      "background_lib.js",
+      "lib.js"
   ],
   "content_scripts": [
       {
@@ -23,7 +38,7 @@
       }],
   "browser_action": {
       "default_icon": "icon.png",
-      //"default_popup": "popup.html",
+      "default_popup": "popup.html",
       "default_title": "Do default"
   },
   "manifest_version": 2

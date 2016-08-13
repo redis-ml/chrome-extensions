@@ -1,62 +1,56 @@
 
 // Called when the user clicks on the browser action.
-chrome.browserAction.onClicked.addListener(eventHandler);
+// It won't work if 'default_popup' is specified in manifest.json
+//chrome.browserAction.onClicked.addListener(eventHandler);
+
 chrome.runtime.onMessage.addListener(messageHandler);
 
-function eventHandler(tab) {
-    //chrome.tabs.create({url: chrome.extension.getURL("tab.html")}, loadHomePage);
-    console.log("you clicked the button in " + tab.url);
-    if (tab.url === VIEW_DATA_PAGE) {
-        chrome.storage.sync.get(null, function(items) {
-            console.log("all items:");
-            console.log(items);
-            // Data must be copied out before sending to content file.
-            var data = {};
-            for (var key in items) {
-                var val = items[key];
-                var arr = [];
-                for (var i in val) {
-                    arr.push(val[i]);
-                }
-                data[key] = arr;
-            }
-            sendAllData(tab, data);
-        });
-    } else {
-        var action = urlToAction(tab.url);
-        if (action === "") {
-            chrome.tabs.create({url: NEW_APP_KEY_PAGE}, applyForNewAppKey);
-        } else {
-            sendSingleAction(tab, action);
-        }
-    }
+//for (var i = 0; i < shadow.length - 1; i++) {
+//    console.log("adding context menu");
+//    var context = shadow[i];
+//    var id = chrome.contextMenus.create({"title": "login as " + context.username, "id": context.username, "contexts": ["all"]});
+//    console.log("adding context menu :");
+//    console.log(id);
+//}
+//chrome.contextMenus.onClicked.addListener(triggerLoginUser);
+
+chrome.commands.onCommand.addListener(commandHandler);
+
+function commandHandler(command) {
+    console.log('Command:', command);
+    defaultTask();
 }
 
 function messageHandler(request, sender, sendResponse) {
     console.log(request);
-    if (request.id == "twitter-app-key") {
+    if (request.action === ACTION_FOR_SAVING_TWITTER_APP_KEY) {
         console.log("got it from extension !");
         for (var appId in request.data) {
             var detail = request.data[appId];
-            chrome.storage.sync.set(request.data, function() {
-                console.log(request.data)
-                chrome.tabs.create({url: VIEW_DATA_PAGE}, eventHandler);
-            });
+            chrome.storage.sync.set(request.data, function() {});
         }
+    } else if (request.action === ACTION_FOR_ASYNC_LOGIN) {
+        console.log("reeived request for async logging");
+        if (sender.tab) {
+            console.log("GOOD, request is from tab");
+            // Only accept message posted from sender.
+            var key = getLocalStorageKeyForLoginTab(sender.tab.id);
+            console.log("getting data from storage");
+            chrome.storage.local.get(key, function(items) {
+                console.log("got data from storage, removing existing data");
+                chrome.storage.local.remove(key, function() {});
+                console.log("sending data back to tab page");
+                chrome.tabs.sendMessage(sender.tab.id, {"action" : ACTION_FOR_ASYNC_LOGIN, data: items[key]});
+            });
+        } else {
+            console.log("reeived ILLEGAL request for async logging, which is not from TAB page");
+        }
+    } else if (request.action === ACTION_FOR_SIGNUP_NEW_USER_NAME) {
+        var data = request['data'];
+        var key = getUserPasswdStorageKey(data['username']);
+        var newData = {};
+        newData[key] = data;
+        chrome.storage.sync.set(newData);
+    } else {
     }
 };
-
-function applyForNewAppKey(tab) {
-    sendSingleAction(tab, ACTION_FOR_NEW_APP_KEY_PAGEPAGE);
-}
-
-function sendSingleAction(tab, action) {
-  chrome.tabs.sendMessage(tab.id, {"action" : action});
-}
-
-function sendAllData(tab, data) {
-  var post = {"data": data, "action": ACTION_FOR_SHOW_STORAGE};
-  console.log("send data:");
-  console.log(post);
-  chrome.tabs.sendMessage(tab.id, post);
-}
