@@ -6,7 +6,8 @@ function renderPage(data) {
     var tr = $('<tr/>')
         .append($('<th/>', {text: 'username'}))
         .append($('<th/>', {text: 'passwd'}))
-        .append($('<th/>', {text: 'operation'}));
+        .append($('<th/>', {text: 'operation'}))
+        .append($('<th/>', {text: 'comments'}));
     table.append(tr);
     for (var key in data) {
         if (!isUserPasswdStorageKey(key)) {
@@ -17,9 +18,10 @@ function renderPage(data) {
         }
         var context = data[key];
         var tr = $('<tr/>')
-            .append($('<td/>').append($('<input/>', {value: context['username'], size: 40})))
-            .append($('<td/>').append($('<input/>', {value: context['passwd'], size: 40})))
-            .append($('<td/>').append($('<button/>', {text: 'Login', 'data-username': context['username']}).click(loginUser)));
+            .append($('<td/>').append($('<input/>', {value: get_key(context, 'username'), size: 40})))
+            .append($('<td/>').append($('<input/>', {value: get_key(context, 'passwd'), size: 40})))
+            .append($('<td/>').append($('<button/>', {text: 'Login', 'data-username': get_key(context, 'username')}).click(loginUser)))
+            .append($('<td/>').append($('<input/>', {value: get_key(context, 'comment'), size: 40})));
         table.append(tr);
     }
     $('#content')
@@ -31,16 +33,22 @@ function renderPage(data) {
     newProfileConfig(profileData);
 }
 
+function get_key(map, key) {
+    if (map && (key in map)) {
+        return map[key];
+    }
+    return '';
+}
 function newProfileConfig(data) {
     $('#signup_data')
         .append(document.createTextNode('Gmail account(without @gmail postfix):'))
-        .append($('<input/>', {id: 'profile-gmail', value: (data ? data['gmail'] : ''), size: 40}))
+        .append($('<input/>', {id: 'profile-gmail', value: get_key(data, 'gmail'), size: 40}))
         .append($('<br/>'))
         .append(document.createTextNode('Phone number:'))
-        .append($('<input/>', {id: 'profile-phone', value: (data ? data['phone-no'] : ''), size: 40}))
+        .append($('<input/>', {id: 'profile-phone', value: get_key(data, 'phone-no'), size: 40}))
         .append($('<br/>'))
         .append(document.createTextNode('Full name'))
-        .append($('<input/>', {id: 'profile-name', value: (data ? data['full-name'] : ''), size: 40}))
+        .append($('<input/>', {id: 'profile-name', value: get_key(data, 'full-name'), size: 40}))
         .append($('<br/>'))
         .append($('<button/>', {id: 'profile-save', text: 'Save'}).click(saveProfile))
         ;
@@ -57,12 +65,14 @@ function saveUserNameInPage() {
     var newData = {};
     var table = $('#passwd_tbl');
     var inputs = $('#content > table td > input');
-    for (var i = 0; i < inputs.length - 1; i+= 2) {
+    var NUM_PER_ROW = 3;
+    for (var i = 0; i <= inputs.length - NUM_PER_ROW; i+= NUM_PER_ROW) {
         var username = inputs[i].value;
         var passwd = inputs[i+1].value;
+        var comment = inputs[i+2].value;
         if (username && passwd) {
             var key = getUserPasswdStorageKey(username);
-            newData[key] = {'username': username, 'passwd': passwd};
+            newData[key] = {'username': username, 'passwd': passwd, 'comment': comment};
         }
     }
     chrome.storage.sync.get(null, function(items) {

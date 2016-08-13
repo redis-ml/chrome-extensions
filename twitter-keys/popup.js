@@ -25,7 +25,10 @@ function renderPage(items) {
         .append($('<hr/>'))
         .append($('<a/>', {
                 text: 'View Data',
-                href: chrome.extension.getURL("view_keys.html")
+                href: '#'
+            }).click(function(e) {
+                var url = chrome.extension.getURL("view_keys.html");
+                chrome.tabs.create({"url": url});
             }))
         .append($('<hr/>'))
         .append($('<a/>', {

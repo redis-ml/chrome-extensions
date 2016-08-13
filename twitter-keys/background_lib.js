@@ -1,5 +1,8 @@
 var STORAGE_KEY_FOR_USER_PASSWD = "shadow:";
+var STORAGE_KEY_FOR_OAUTH_KEY = "oauthKey:";
 var STORAGE_KEY_FOR_SIGNUP_INFO = "signupInfo";
+
+var HTML_ID_KEYS_TABLE = 'keysTbl';
 
 function eventHandler(tab) {
     //chrome.tabs.create({url: chrome.extension.getURL("tab.html")}, loadHomePage);
@@ -64,6 +67,12 @@ function getLocalStorageKeyForLoginTab(tabId) {
     return 'tab:'+tabId+',login';
 }
 
+function isOauthStorageKey(key) {
+    return !isNaN(key) || (key && key.startsWith(STORAGE_KEY_FOR_OAUTH_KEY));
+}
+function getOauthStorageKey(key) {
+    return STORAGE_KEY_FOR_OAUTH_KEY + key;
+}
 function isUserPasswdStorageKey(key) {
     return key && key.startsWith(STORAGE_KEY_FOR_USER_PASSWD);
 }
@@ -82,3 +91,29 @@ function loginUser(event) {
     });
 }
 
+function showStorage(parentElement, data) {
+    var table = $('<table/>', {id: HTML_ID_KEYS_TABLE});
+    var header = $('<tr/>');
+    var headerInitiated = false;
+    for (var key in data) {
+        if (!isOauthStorageKey(key)) {
+            continue;
+        }
+        var vals = data[key];
+        var tr = $('<tr/>');
+        for (var i in vals) {
+            var v = vals[i];
+            if (!headerInitiated) {
+                header.append($('<th/>', {text: v[0]}));
+            }
+            tr.append($('<td/>', {text: v[1]}));
+        }
+        if (!headerInitiated) {
+            headerInitiated = true;
+            table.append(header);
+        }
+        table.append(tr);
+    }
+    parentElement.append(table);
+    console.log(table);
+}

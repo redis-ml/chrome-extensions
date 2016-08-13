@@ -25,10 +25,13 @@ function messageHandler(request, sender, sendResponse) {
     console.log(request);
     if (request.action === ACTION_FOR_SAVING_TWITTER_APP_KEY) {
         console.log("got it from extension !");
+        var newData = {};
         for (var appId in request.data) {
             var detail = request.data[appId];
-            chrome.storage.sync.set(request.data, function() {});
+            var key = getOauthStorageKey(appId);
+            newData[key] = detail;
         }
+        chrome.storage.sync.set(newData, function() {});
     } else if (request.action === ACTION_FOR_ASYNC_LOGIN) {
         console.log("reeived request for async logging");
         if (sender.tab) {

@@ -87,14 +87,3 @@ function tryParseAppKeysPageUrl(url) {
     }
     return "";
 }
-
-function showStorage(data) {
-    var html = "<pre>";
-    for (var key in data) {
-        var val = data[key];
-        html += key + "\n" + val + "\n";
-    }
-    html += '</pre>';
-    console.log(html);
-    document.body.innerHTML = html;
-}
