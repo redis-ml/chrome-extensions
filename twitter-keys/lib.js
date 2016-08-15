@@ -5,6 +5,7 @@ var TWITTER_SIGNIN_PAGE = "https://twitter.com/login";
 var SIGNUP_VERIFY_PAGE = "https://twitter.com/welcome/phone_signup_verify";
 var SIGNUP_EMAIL_VERIFY_PAGE = "https://twitter.com/welcome/add_email";
 var SIGNUP_ADD_USER_NAME = "https://twitter.com/account/add_username";
+var TWITTER_RE_SIGNIN_PAGE = "https://twitter.com/account/access"; // $('.Button') // "Continue to Twitter"
 var APP_HOME_PREFIX = 'https://apps.twitter.com/app/';
 var TWITTER_HOMEPAGE = 'https://twitter.com/';
 var TWITTER_SIGNUP_PAGE = 'https://twitter.com/signup';
@@ -14,6 +15,7 @@ var TWITTER_DOWNLOAD_PAGE = 'https://twitter.com/download';
 
 var ACTION_FOR_TEST = "testPage";
 var ACTION_FOR_ASYNC_LOGIN = "asyncLogin";
+var ACTION_FOR_TWITTER_RE_SIGNIN_PAGE = "twitterReSignin";
 var ACTION_FOR_SAVING_TWITTER_APP_KEY = "";
 var ACTION_FOR_TWITTER_SIGNIN_PAGE = "twitterSigninPage";
 var ACTION_FOR_TWITTER_HOMEPAGE = "twitterHomePage";
@@ -44,6 +46,8 @@ function urlToAction(url) {
         return ACTION_FOR_TEST;
     } else if (matchUri(url, TWITTER_SIGNUP_PAGE)) {
         return ACTION_FOR_SIGNUP_PAGE;
+    } else if (matchUri(url, TWITTER_RE_SIGNIN_PAGE)) {
+        return ACTION_FOR_TWITTER_RE_SIGNIN_PAGE;
     } else if (matchUri(url, SIGNUP_VERIFY_PAGE)) {
         return ACTION_FOR_VERIFY_PHONE;
     } else if (matchUri(url, TWITTER_SIGNIN_PAGE)) {

@@ -27,6 +27,8 @@ function main(action, request) {
         //homePage();
     } else if (action === ACTION_FOR_TWITTER_SIGNIN_PAGE) {
         initiateAsyncTwitterSignin();
+    } else if (action === ACTION_FOR_TWITTER_RE_SIGNIN_PAGE) {
+        twitterReSignin();
     } else if (action === ACTION_FOR_SIGNUP_PAGE) {
         signupPage(request);
     } else if (action === ACTION_FOR_VERIFY_EMAIL_WHEN_SIGNUP) {
@@ -45,6 +47,20 @@ console.log("registered message handler in content_script.js" + new Date().getTi
 
 function test() {
     document.write("<html><b>This is atest page</b></html>");
+}
+function twitterReSignin() {
+    var button = $('.Button');
+    if (button && button.length == 1) {
+        console.log("Found only one button");
+        var buttonVal = button.val();
+        if (buttonVal == "Start" || buttonVal == "Send code" || buttonVal == "Continue to Twitter") {
+            console.log("Clicking start");
+            // Start page.
+            new Promise((resolve) => setTimeout(resolve, 1000)).then(() => {
+                button.click();
+            });
+        }
+    }
 }
 function initiateAsyncTwitterSignin() {
     console.log("initiating async login procedure.");
@@ -193,9 +209,13 @@ function newAppKeyPage() {
     document.getElementById("edit-submit").click();
 }
 
+$(document).ready(function() {
 var action = urlToAction(window.location.href);
-if (action == ACTION_FOR_APP_KEYS_PAGE || action === ACTION_FOR_TWITTER_SIGNIN_PAGE) {
+if (action == ACTION_FOR_APP_KEYS_PAGE
+        || action === ACTION_FOR_TWITTER_SIGNIN_PAGE
+        || action === ACTION_FOR_TWITTER_RE_SIGNIN_PAGE) {
     main(action, null);
 }
+});
 console.log("loaded:" + window.location.href);
 console.log("registered on load event here handler in content_script.js");
