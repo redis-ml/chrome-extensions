@@ -29,53 +29,56 @@ function main(action, request) {
     }
 }
 function reloadPage() {
-    window.location.reload();
+    window.location.reload(true);
 }
 function dashboardPage(request) {
-    //var val = $('[data-reactid=".0.0.3.0.0.0.0.0.1.0.0.1.0"]');
-    //if (val) {
-    //    var ts = new Date().getTime();
-    //    var amount = val.innerText;
-    //    saveGenerationData({'time': ts, 'amount': amount});
-    //} else {
-    //    sendAlert('Failed to read data from Dashboard page' + window.location.href);
-    //}
     console.log("In dashboard page");
+    var val = $('[data-reactid=".0.0.3.0.0.0.0.0.1.0.0.1.0"]');
+    if (val) {
+        var ts = new Date().getTime();
+        var amount = val.innerText;
+        saveGenerationData({'time': ts, 'amount': amount});
+    } else {
+        sendAlert('Failed to read data from Dashboard page' + window.location.href);
+    }
     window.setInterval(function() {
-        console.log("polling account data");
-        $.ajax({url: "/api/fusion/accounts"}).done(function(msg) {
-            console.log("got account data");
-            var j = msg;
-            if ('accounts' in j) {
-                console.log(j['accounts']);
-                var acct = j['accounts'][0]['account_no'];
-                var newUrl = '/api/fusion/accounts/' + acct;
-                console.log("polling account detail data");
-                $.ajax({url: newUrl}).done(function(msg) {
-                    console.log("got account detail data");
-                    var j = msg;
-                    if ('energyToday' in j) {
-                        var ts = new Date().getTime();
-                        var amount = j['energyToday'];
-                        console.log("saveing energy data");
-                        saveGenerationData({'time': ts, 'amount': amount});
-                        return;
-                    }
-                    sendAlert("Failed parse detailed account info from AJAX for: " + textStatus);
-                    reloadPage();
-                }).fail(function(jqXHR, textStatus) {
-                    sendAlert("Request failed for loading detailed account info from AJAX for: " + textStatus);
-                    reloadPage();
-                });
-                return;
-            }
-            sendAlert('Failed to parse account data');
-            reloadPage();
-        }).fail(function(jqXHR, textStatus) {
-            sendAlert("Request failed for loading accounts AJAX for: " + textStatus);
-            reloadPage();
-        });
+        reloadPage();
     }, 60000);
+    //window.setInterval(function() {
+    //    console.log("polling account data");
+    //    $.ajax({url: "/api/fusion/accounts"}).done(function(msg) {
+    //        console.log("got account data");
+    //        var j = msg;
+    //        if ('accounts' in j) {
+    //            console.log(j['accounts']);
+    //            var acct = j['accounts'][0]['account_no'];
+    //            var newUrl = '/api/fusion/accounts/' + acct;
+    //            console.log("polling account detail data");
+    //            $.ajax({url: newUrl}).done(function(msg) {
+    //                console.log("got account detail data");
+    //                var j = msg;
+    //                if ('energyToday' in j) {
+    //                    var ts = new Date().getTime();
+    //                    var amount = j['energyToday'];
+    //                    console.log("saveing energy data");
+    //                    saveGenerationData({'time': ts, 'amount': amount});
+    //                    return;
+    //                }
+    //                sendAlert("Failed parse detailed account info from AJAX for: " + textStatus);
+    //                reloadPage();
+    //            }).fail(function(jqXHR, textStatus) {
+    //                sendAlert("Request failed for loading detailed account info from AJAX for: " + textStatus);
+    //                reloadPage();
+    //            });
+    //            return;
+    //        }
+    //        sendAlert('Failed to parse account data');
+    //        reloadPage();
+    //    }).fail(function(jqXHR, textStatus) {
+    //        sendAlert("Request failed for loading accounts AJAX for: " + textStatus);
+    //        reloadPage();
+    //    });
+    //}, 60000);
 }
 function loginPage(request) {
     if (request) {

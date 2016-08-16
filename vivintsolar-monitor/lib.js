@@ -40,7 +40,7 @@ function sendAlert(msg) {
 
 function saveGenerationData(data) {
     chrome.runtime.sendMessage({"action": ACTION_FOR_SAVING_GENERATION_DATA, data: data}, function(response) {
-            if (!response.success) {
+            if (!(response && response.success)) {
               window.location.reload();
             }
       });
