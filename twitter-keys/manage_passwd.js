@@ -17,12 +17,7 @@ function renderPage(data) {
             continue;
         }
         var context = data[key];
-        var tr = $('<tr/>')
-            .append($('<td/>').append($('<input/>', {value: get_key(context, 'username'), size: 40})))
-            .append($('<td/>').append($('<input/>', {value: get_key(context, 'passwd'), size: 40})))
-            .append($('<td/>').append($('<button/>', {text: 'Login', 'data-username': get_key(context, 'username')}).click(loginUser)))
-            .append($('<td/>').append($('<input/>', {value: get_key(context, 'comment'), size: 40})));
-        table.append(tr);
+        table.append(newUserNameRow(context));
     }
     $('#content')
         .append(table)
@@ -31,6 +26,17 @@ function renderPage(data) {
                     .append($('<button/>', {text: '+'}).click(addNewUserNameInPage))
                     .append($('<button/>', {text: 'Save'}).click(saveUserNameInPage)));
     newProfileConfig(profileData);
+}
+
+function newUserNameRow(context) {
+    return $('<tr/>')
+        .append($('<td/>').append($('<input/>', {value: get_key(context, 'username'), size: 40})))
+        .append($('<td/>').append($('<input/>', {value: get_key(context, 'passwd'), size: 40})))
+        .append($('<td/>').append($('<button/>', {text: 'Login', 'data-username': get_key(context, 'username')}).click(loginUser)))
+        .append($('<td/>').append($('<input/>', {value: get_key(context, 'comment'), size: 40})));
+}
+function addNewUserNameInPage() {
+    $('#passwd_tbl').append(newUserNameRow(null));
 }
 
 function get_key(map, key) {
@@ -52,13 +58,6 @@ function newProfileConfig(data) {
         .append($('<br/>'))
         .append($('<button/>', {id: 'profile-save', text: 'Save'}).click(saveProfile))
         ;
-}
-
-function addNewUserNameInPage() {
-    $('#passwd_tbl').append(
-        $('<tr/>')
-            .append($('<td/>').append($('<input/>', {size: 40})))
-            .append($('<td/>').append($('<input/>', {size: 40}))));
 }
 
 function saveUserNameInPage() {
