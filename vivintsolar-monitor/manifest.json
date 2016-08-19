@@ -4,6 +4,8 @@
   "version": "2.0",
   "permissions": [
     "storage",
+    "alarms",
+    "notifications",
     "contextMenus",
     "activeTab", "<all_urls>",
     "tabs", "http://*/*", "https://*/*"

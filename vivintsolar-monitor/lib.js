@@ -39,11 +39,13 @@ function sendAlert(msg) {
 }
 
 function saveGenerationData(data) {
-    chrome.runtime.sendMessage({"action": ACTION_FOR_SAVING_GENERATION_DATA, data: data}, function(response) {
-            if (!(response && response.success)) {
-              window.location.reload();
-            }
-      });
+    console.log("Saving data message to background.js " + new Date());
+    console.log(data);
+    chrome.runtime.sendMessage({"action": ACTION_FOR_SAVING_GENERATION_DATA, 'data': data});
+}
+function reloadPage() {
+    console.log("VS: redirecting to login page." + new Date());
+    window.location.href = LOGIN_PAGE;
 }
 
 function get_time_str(ts) {

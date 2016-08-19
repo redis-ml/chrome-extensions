@@ -1,7 +1,7 @@
 var STORAGE_KEY_FOR_USER_PASSWD = "shadow:";
 var STORAGE_KEY_FOR_GENERATION_DATA = "generation-data";
 
-var MAX_STORED_DATA_POINTS = 10000;
+var MAX_STORED_DATA_POINTS = 200;
 
 var HTML_ID_KEYS_TABLE = 'keysTbl';
 var HTML_ID_KEYS_USER_NAME = 'keysUserName';
@@ -32,14 +32,12 @@ function saveGenerationDataToStorage(data) {
         if (!item) {
             item = [];
         }
-        console.log("before saveing:" + JSON.stringify(item));
         while (item.length > MAX_STORED_DATA_POINTS - 1) {
             item.shift();
         }
         item.push(data);
         var newData = {};
         newData[key] = item;
-        console.log("after saveing:" + JSON.stringify(newData));
         chrome.storage.sync.set(newData);
     });
 }
