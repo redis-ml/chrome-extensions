@@ -1,18 +1,20 @@
-function renderPage(data) {
+function renderPageWithServerData(response) {
     var table = $('<table/>', {
         id: 'passwd_tbl'
     });
-    var tr = $('<tr/>')
-        .append($('<th/>', {text: 'username'}))
-        .append($('<th/>', {text: 'passwd'}))
-        .append($('<th/>', {text: 'operation'}))
-        .append($('<th/>', {text: 'comments'}));
+    var tr = $('<tr/>');
+    var headerData = response['header']; 
+    var emptyRow = {};
+    for (var i in headerData) {
+        tr.append($('<th/>', {text: headerData[i]}));
+        emptyRow[headerData[i]] = '';
+    }
+    tr.append($('<th/>', {text: 'operation'}))
     table.append(tr);
-    for (var key in data) {
-        if (!isUserPasswdStorageKey(key)) {
-            continue;
-        }
-        var context = data[key];
+
+    var data = response['data'];
+    for (var i in data) {
+        var context = data[i];
         table.append(newUserNameRow(context));
     }
     $('#content')
@@ -20,18 +22,20 @@ function renderPage(data) {
         .append(table)
         .append(
                 $('<div/>')
-                    .append($('<button/>', {text: '+'}).click(addNewUserNameInPage))
-                    .append($('<button/>', {text: 'Save'}).click(saveUserNameInPage)));
-    newProfileConfig(data[STORAGE_KEY_FOR_SIGNUP_INFO]);
-    newServerConfig(data[STORAGE_KEY_FOR_SERVER_CONFIG]);
+                    .append($('<button/>', {text: '+'}).click(function() {
+                        $('#passwd_tbl').append(newUserNameRow(emptyRow));
+                    }))
+                    .append($('<button/>', {text: 'Save'}).click(function() {
+                        saveUserNameInPage(headerData);
+                    })));
 }
 
 function newUserNameRow(context) {
-    return $('<tr/>')
-        .append($('<td/>').append($('<input/>', {value: get_key(context, 'username')}).attr('size', 15)))
-        .append($('<td/>').append($('<input/>', {value: get_key(context, 'passwd')}).attr('size', 20)))
-        .append($('<td/>').append($('<button/>', {text: 'Login', 'data-username': get_key(context, 'username')}).click(loginUser)))
-        .append($('<td/>').append($('<input/>', {value: get_key(context, 'comment')}).attr('size', 40)));
+    var tr = $('<tr/>');
+    for (var key in context) {
+        tr.append($('<td/>').append($('<input/>', {value: get_key(context, key)}).attr('size', 20)))
+    }
+    return tr.append($('<td/>').append($('<button/>', {text: 'Login', 'data-passwd': get_key(context, 'passwd'), 'data-username': get_key(context, 'username')}).click(loginUser)))
 }
 function addNewUserNameInPage() {
     $('#passwd_tbl').append(newUserNameRow(null));
@@ -69,36 +73,31 @@ function newServerConfig(data) {
         ;
 }
 
-function saveUserNameInPage() {
+function saveUserNameInPage(headerData) {
     var newData = {};
     var table = $('#passwd_tbl');
     var inputs = $('#content > table td > input');
-    var NUM_PER_ROW = 3;
-    for (var i = 0; i <= inputs.length - NUM_PER_ROW; i+= NUM_PER_ROW) {
-        var username = inputs[i].value;
-        var passwd = inputs[i+1].value;
-        var comment = inputs[i+2].value;
-        if (username && passwd) {
+    var NUM_PER_ROW = headerData.length;
+    for (var inputI = 0; inputI <= inputs.length - NUM_PER_ROW; inputI += NUM_PER_ROW) {
+        var context = {};
+        for (var i = 0; i < headerData.length; i++) {
+            var key = headerData[i];
+            var val = inputs[inputI + i].value;
+            context[key] = val;
+        }
+        var username = context['username'];
+        var passwd = context['passwd']
+        var twitter_id = context['twitter_id'];
+        if (username && passwd && !isNaN(twitter_id)) {
             var key = getUserPasswdStorageKey(username);
-            newData[key] = {'username': username, 'passwd': passwd, 'comment': comment};
+            newData[key] = context;
+        } else {
+            console.log("ignoring illegal data: " + JSON.stringify(context));
         }
     }
-    chrome.storage.sync.get(null, function(items) {
-        var toDel = [];
-        for (var key in items) {
-            if (!isUserPasswdStorageKey(key)) {
-                continue;
-            }
-            if (!(key in newData)) {
-                toDel.push(key);
-            }
-        }
-        if (toDel.length > 0) {
-            chrome.storage.sync.remove(toDel);
-        }
-        chrome.storage.sync.set(newData, function() {
-            $('#msg').text('Data Saved !');
-        });
+    chrome.storage.sync.set(newData, function() {
+        $('#msg').text('Data Saved !');
+        syncLocalToServer();
     });
 }
 
@@ -129,8 +128,31 @@ function saveServerConfig(evt) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    chrome.storage.sync.get(null, function(data) {
-        renderPage(data);
+    chrome.storage.sync.get([STORAGE_KEY_FOR_SERVER_CONFIG, STORAGE_KEY_FOR_SIGNUP_INFO], function(data) {
+        console.log(data);
+        newProfileConfig(data[STORAGE_KEY_FOR_SIGNUP_INFO]);
+        newServerConfig(data[STORAGE_KEY_FOR_SERVER_CONFIG]);
+        var serverUrl = data[STORAGE_KEY_FOR_SERVER_CONFIG]['server-url'];
+        var serverAuth = data[STORAGE_KEY_FOR_SERVER_CONFIG]['server-auth-key'];
+        post_to_server(
+            serverUrl,
+            {
+                "action": 'showTestingAccounts',
+                "auth_key": serverAuth
+            })
+        .success(function(responseData, textStatus, jqXHR) {
+            var r = JSON.parse(responseData);
+            if (r['status'] === 'OK') {
+                renderPageWithServerData(r);
+            } else {
+                $('#content').append(document.createTextNode('Server side failed to generate key data. Refresh page later.'))
+            }
+        }).error(function (responseData, textStatus, errorThrown) {
+            $('#content').append(document.createTextNode('Failed to load data from Server side. Refresh page later.'))
+            console.log(errorThrown);
+            console.log(responseData);
+            console.log('POST failed.');
+        });
     });
 });
 

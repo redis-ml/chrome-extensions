@@ -1,14 +1,12 @@
 function renderPage(items) {
     var ul = $('<ul/>');
     for (var key in items) {
-        if (!isUserPasswdStorageKey(key)) {
-            continue;
-        }
         var context = items[key];
         console.log("adding element: " +context.username);
         var a = $('<a/>', {
             text: 'Login:' + context.username,
             'data-username': context.username,
+            'data-passwd': context.passwd,
             href: '#'
         }).click(loginUser);
         var li = $('<li/>');
@@ -44,7 +42,28 @@ function renderPage(items) {
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log("generating item");
-    chrome.storage.sync.get(null, function(items) {
-        renderPage(items);
+    chrome.storage.sync.get(STORAGE_KEY_FOR_SERVER_CONFIG, function(data) {
+        console.log(data);
+        var serverUrl = data[STORAGE_KEY_FOR_SERVER_CONFIG]['server-url'];
+        var serverAuth = data[STORAGE_KEY_FOR_SERVER_CONFIG]['server-auth-key'];
+        post_to_server(
+            serverUrl,
+            {
+                "action": 'showTestingAccounts',
+                "auth_key": serverAuth
+            })
+        .success(function(responseData, textStatus, jqXHR) {
+            var r = JSON.parse(responseData);
+            if (r['status'] === 'OK') {
+                renderPage(r['data']);
+            } else {
+                $('#content').append(document.createTextNode('Server side failed to generate key data. Refresh page later.'))
+            }
+        }).error(function (responseData, textStatus, errorThrown) {
+            $('#content').append(document.createTextNode('Failed to load data from Server side. Refresh page later.'))
+            console.log(errorThrown);
+            console.log(responseData);
+            console.log('POST failed.');
+        });
     });
 });

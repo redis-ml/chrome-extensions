@@ -85,13 +85,14 @@ function getUserPasswdStorageKey(id) {
 function loginUser(event) {
     console.log("click something");
     var username = $(this).attr('data-username');
-    console.log("got username:" + username);
-    var key = getUserPasswdStorageKey(username);
-    chrome.storage.sync.get(key, function(item) {
-        var context = item[key];
-        triggerLoginUser(context);
-    });
+    var passwd = $(this).attr('data-passwd');
+    var context = {
+        'username': username,
+        'passwd': passwd
+    };
+    triggerLoginUser(context);
 }
+
 function showServerKeys(parentElement, data) {
     var table = $('<table/>', {id: HTML_ID_KEYS_TABLE});
     var header = $('<tr/>');
@@ -141,40 +142,66 @@ function showStorage(parentElement, data) {
 function syncLocalToServer() {
     // Dump data to server side, if succes, clean-up local data.
     chrome.storage.sync.get(null, function(data) {
-        var toSave = {};
+        var apiKeysToSave = {};
+        var apiKeysNum = 0;
+        var testingAccountsToSave = {};
+        var testingAccountsNum = 0;
         var serverUrl = null;
         var serverAuth = null;
-        var toSaveKeys = [];
         for (var key in data) {
             if (isOauthStorageKey(key)) {
-                toSave[key] = data[key];
-                toSaveKeys.push(key);
+                apiKeysToSave[key] = data[key];
+                apiKeysNum++;
+            } else if (isUserPasswdStorageKey(key)) {
+                testingAccountsToSave[key] = data[key];
+                testingAccountsNum++;
             } else if (key === STORAGE_KEY_FOR_SERVER_CONFIG) {
                 var tmp = data[key];
                 serverUrl = tmp['server-url'];
                 serverAuth = tmp['server-auth-key'];
             }
         }
-        if (serverAuth && serverUrl && toSaveKeys.length > 0) {
-            post_to_server(
-                serverUrl,
-                {
-                    "action": 'saveApiKeys',
-                    "data": JSON.stringify(toSave),
-                    "auth_key": serverAuth
-                })
-            .success(function(responseData, textStatus, jqXHR) {
-                console.log("save data to server SUCC");
-                console.log(responseData);
-                var r = JSON.parse(responseData);
-                if (r['status'] === 'OK') {
-                    chrome.storage.sync.remove(toSaveKeys, function() {});
-                }
-            }).error(function (responseData, textStatus, errorThrown) {
-                console.log(errorThrown);
-                console.log(responseData);
-                console.log('POST failed.');
-            });
+        if (serverAuth && serverUrl) {
+            if (apiKeysNum > 0) {
+                saveDataWithType(serverUrl, serverAuth, 'saveApiKeys' /* action */, apiKeysToSave);
+                console.log("SAVED API KEYS");
+            }
+            if (testingAccountsNum > 0) {
+                saveDataWithType(serverUrl, serverAuth, 'saveTestingAccounts' /* action */, testingAccountsToSave);
+                console.log("SAVED TESTING ACCOUNTS");
+            }
+        } else {
+            console.log("ERROR!!! No server url or auth key found. CAN NOT SAVE DATA");
         }
+    });
+}
+
+function saveDataWithType(serverUrl, serverAuth, action, toSave) {
+    var toSaveKeys = [];
+    for (var key in toSave) {
+        toSaveKeys.push(key);
+    }
+    post_to_server(
+        serverUrl,
+        {
+            "action": action,
+            "data": JSON.stringify(toSave),
+            "auth_key": serverAuth
+        })
+    .success(function(responseData, textStatus, jqXHR) {
+        console.log("save data to server SUCC");
+        console.log(responseData);
+        var r = JSON.parse(responseData);
+        if (r['status'] === 'OK') {
+            // Saved to server, delete local copy.
+            console.log("Saved to server, deleting local data.");
+            chrome.storage.sync.remove(toSaveKeys, function() {});
+        } else {
+            console.log("Failed to saved data to server.");
+        }
+    }).error(function (responseData, textStatus, errorThrown) {
+        console.log(errorThrown);
+        console.log(responseData);
+        console.log('POST failed.');
     });
 }

@@ -174,13 +174,17 @@ function appKeysPage() {
     var owner_key = $('.app-settings > div:eq(3) > span:eq(0)').html();
     var owner_val = $('.app-settings > div:eq(3) > span:eq(1)').html();
 
+    var twitter_id_key = $('.app-settings > div:eq(3) > span:eq(0)').html();
+    var twitter_id_val = $('.app-settings > div:eq(3) > span:eq(1)').html();
+
     var token_key = $('.access > div:eq(0) > span:eq(0)').html();
     var token_val = $('.access > div:eq(0) > span:eq(1)').html();
     var token_sec_key = $('.access > div:eq(1) > span:eq(0)').html();
     var token_sec_val = $('.access > div:eq(1) > span:eq(1)').html();
     var id = tryParseAppKeysPageUrl(url);
     var json = {}
-    json[id] = [[key, val], [sec_key, sec_val], [token_key, token_val], [token_sec_key, token_sec_val], [owner_key, owner_val]];
+    json[id] = [[key, val], [sec_key, sec_val], [token_key, token_val], [token_sec_key, token_sec_val],
+        [owner_key, owner_val], [twitter_id_key, twitter_id_val]];
 
     chrome.runtime.sendMessage({action: ACTION_FOR_SAVING_TWITTER_APP_KEY, data: json}, function(response) {
           console.log(response);
