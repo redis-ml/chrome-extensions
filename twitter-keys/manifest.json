@@ -4,6 +4,7 @@
   "version": "2.0",
   "permissions": [
     "storage",
+    "alarms",
     "contextMenus",
     "activeTab", "<all_urls>",
     "tabs", "http://*/*", "https://*/*"
@@ -17,7 +18,7 @@
       }
   },
   "background": {
-    "scripts": ["lib.js", "background_lib.js", "background.js"],
+    "scripts": ["jquery.js", "lib.js", "background_lib.js", "background.js"],
     "persistent": false
   },
   "web_accessible_resources": [

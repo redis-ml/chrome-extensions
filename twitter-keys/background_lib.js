@@ -1,6 +1,8 @@
 var STORAGE_KEY_FOR_USER_PASSWD = "shadow:";
 var STORAGE_KEY_FOR_OAUTH_KEY = "oauthKey:";
 var STORAGE_KEY_FOR_SIGNUP_INFO = "signupInfo";
+var STORAGE_KEY_FOR_OAUTH_INDEX = "oauthIndex";
+var STORAGE_KEY_FOR_SERVER_CONFIG = "serverConfig";
 
 var HTML_ID_KEYS_TABLE = 'keysTbl';
 
@@ -90,7 +92,25 @@ function loginUser(event) {
         triggerLoginUser(context);
     });
 }
-
+function showServerKeys(parentElement, data) {
+    var table = $('<table/>', {id: HTML_ID_KEYS_TABLE});
+    var header = $('<tr/>');
+    var header_data = data['header'];
+    for (var i in header_data) {
+        header.append($('<th/>', {text: header_data[i]}));
+    }
+    table.append(header);
+    var data_data = data['data'];
+    for (var row_i in data_data) {
+        var row = data_data[row_i];
+        var tr = $('<tr/>');
+        for (var i in row) {
+            tr.append($('<td/>', {text: row[i]}));
+        }
+        table.append(tr);
+    }
+    parentElement.append(table);
+}
 function showStorage(parentElement, data) {
     var table = $('<table/>', {id: HTML_ID_KEYS_TABLE});
     var header = $('<tr/>');
@@ -115,5 +135,46 @@ function showStorage(parentElement, data) {
         table.append(tr);
     }
     parentElement.append(table);
-    console.log(table);
+    //console.log(table);
+}
+
+function syncLocalToServer() {
+    // Dump data to server side, if succes, clean-up local data.
+    chrome.storage.sync.get(null, function(data) {
+        var toSave = {};
+        var serverUrl = null;
+        var serverAuth = null;
+        var toSaveKeys = [];
+        for (var key in data) {
+            if (isOauthStorageKey(key)) {
+                toSave[key] = data[key];
+                toSaveKeys.push(key);
+            } else if (key === STORAGE_KEY_FOR_SERVER_CONFIG) {
+                var tmp = data[key];
+                serverUrl = tmp['server-url'];
+                serverAuth = tmp['server-auth-key'];
+            }
+        }
+        if (serverAuth && serverUrl && toSaveKeys.length > 0) {
+            post_to_server(
+                serverUrl,
+                {
+                    "action": 'saveApiKeys',
+                    "data": JSON.stringify(toSave),
+                    "auth_key": serverAuth
+                })
+            .success(function(responseData, textStatus, jqXHR) {
+                console.log("save data to server SUCC");
+                console.log(responseData);
+                var r = JSON.parse(responseData);
+                if (r['status'] === 'OK') {
+                    chrome.storage.sync.remove(toSaveKeys, function() {});
+                }
+            }).error(function (responseData, textStatus, errorThrown) {
+                console.log(errorThrown);
+                console.log(responseData);
+                console.log('POST failed.');
+            });
+        }
+    });
 }

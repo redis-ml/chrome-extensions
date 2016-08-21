@@ -1,5 +1,4 @@
 function renderPage(data) {
-    var profileData = null;
     var table = $('<table/>', {
         id: 'passwd_tbl'
     });
@@ -11,29 +10,28 @@ function renderPage(data) {
     table.append(tr);
     for (var key in data) {
         if (!isUserPasswdStorageKey(key)) {
-            if (key === STORAGE_KEY_FOR_SIGNUP_INFO) {
-                profileData = data[key];
-            }
             continue;
         }
         var context = data[key];
         table.append(newUserNameRow(context));
     }
     $('#content')
+        .append($('<button/>', {id: 'sync-btn', text: 'Push local data to Server'}).click(syncLocalToServer))
         .append(table)
         .append(
                 $('<div/>')
                     .append($('<button/>', {text: '+'}).click(addNewUserNameInPage))
                     .append($('<button/>', {text: 'Save'}).click(saveUserNameInPage)));
-    newProfileConfig(profileData);
+    newProfileConfig(data[STORAGE_KEY_FOR_SIGNUP_INFO]);
+    newServerConfig(data[STORAGE_KEY_FOR_SERVER_CONFIG]);
 }
 
 function newUserNameRow(context) {
     return $('<tr/>')
-        .append($('<td/>').append($('<input/>', {value: get_key(context, 'username'), size: 40})))
-        .append($('<td/>').append($('<input/>', {value: get_key(context, 'passwd'), size: 40})))
+        .append($('<td/>').append($('<input/>', {value: get_key(context, 'username')}).attr('size', 15)))
+        .append($('<td/>').append($('<input/>', {value: get_key(context, 'passwd')}).attr('size', 20)))
         .append($('<td/>').append($('<button/>', {text: 'Login', 'data-username': get_key(context, 'username')}).click(loginUser)))
-        .append($('<td/>').append($('<input/>', {value: get_key(context, 'comment'), size: 40})));
+        .append($('<td/>').append($('<input/>', {value: get_key(context, 'comment')}).attr('size', 40)));
 }
 function addNewUserNameInPage() {
     $('#passwd_tbl').append(newUserNameRow(null));
@@ -48,15 +46,26 @@ function get_key(map, key) {
 function newProfileConfig(data) {
     $('#signup_data')
         .append(document.createTextNode('Gmail account(without @gmail postfix):'))
-        .append($('<input/>', {id: 'profile-gmail', value: get_key(data, 'gmail'), size: 40}))
+        .append($('<input/>', {id: 'profile-gmail', value: get_key(data, 'gmail')}).attr('size', 15))
         .append($('<br/>'))
         .append(document.createTextNode('Phone number:'))
-        .append($('<input/>', {id: 'profile-phone', value: get_key(data, 'phone-no'), size: 40}))
+        .append($('<input/>', {id: 'profile-phone', value: get_key(data, 'phone-no')}).attr('size', 20))
         .append($('<br/>'))
         .append(document.createTextNode('Full name'))
-        .append($('<input/>', {id: 'profile-name', value: get_key(data, 'full-name'), size: 40}))
+        .append($('<input/>', {id: 'profile-name', value: get_key(data, 'full-name')}).attr('size', 40))
         .append($('<br/>'))
         .append($('<button/>', {id: 'profile-save', text: 'Save'}).click(saveProfile))
+        ;
+}
+
+function newServerConfig(data) {
+    $('#server_data')
+        .append(document.createTextNode('Server url:'))
+        .append($('<input/>', {id: 'server-url', value: get_key(data, 'server-url')}).attr('size', 80))
+        .append($('<br/>'))
+        .append(document.createTextNode('Server AUTH key:'))
+        .append($('<input/>', {id: 'server-auth-key', value: get_key(data, 'server-auth-key')}).attr('size', 80))
+        .append($('<button/>', {id: 'server-config-save', text: 'Save'}).click(saveServerConfig))
         ;
 }
 
@@ -105,6 +114,18 @@ function saveProfile(evt) {
     var newData = {};
     newData[STORAGE_KEY_FOR_SIGNUP_INFO] = data;
     chrome.storage.sync.set(newData);
+}
+
+function saveServerConfig(evt) {
+    var serverUrl = $('#server-url').val();
+    var serverAuthKey = $('#server-auth-key').val();
+    var data = {
+        'server-url': serverUrl,
+        'server-auth-key': serverAuthKey
+    };
+    var newData = {};
+    newData[STORAGE_KEY_FOR_SERVER_CONFIG] = data;
+    chrome.storage.sync.set(newData, function() {});
 }
 
 document.addEventListener('DOMContentLoaded', function () {

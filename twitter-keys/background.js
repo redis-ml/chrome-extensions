@@ -5,14 +5,20 @@
 
 chrome.runtime.onMessage.addListener(messageHandler);
 
-//for (var i = 0; i < shadow.length - 1; i++) {
-//    console.log("adding context menu");
-//    var context = shadow[i];
-//    var id = chrome.contextMenus.create({"title": "login as " + context.username, "id": context.username, "contexts": ["all"]});
-//    console.log("adding context menu :");
-//    console.log(id);
-//}
-//chrome.contextMenus.onClicked.addListener(triggerLoginUser);
+chrome.alarms.onAlarm.addListener(alarmHandler);
+chrome.alarms.create("default", {delayInMinutes: 1, periodInMinutes: 1});
+
+function alarmHandler(alarm) {
+    if (!alarm) {
+        console.log("Unexpected null Alarm object");
+        return;
+    }
+    console.log("got alarm!");
+    console.log(alarm);
+    if (alarm.name === "default") {
+        syncLocalToServer();
+    }
+}
 
 chrome.commands.onCommand.addListener(commandHandler);
 
@@ -31,7 +37,9 @@ function messageHandler(request, sender, sendResponse) {
             var key = getOauthStorageKey(appId);
             newData[key] = detail;
         }
-        chrome.storage.sync.set(newData, function() {});
+        chrome.storage.sync.set(newData, function() {
+            syncLocalToServer();
+        });
     } else if (request.action === ACTION_FOR_ASYNC_LOGIN) {
         console.log("reeived request for async logging");
         if (sender.tab) {

@@ -16,7 +16,7 @@ var TWITTER_DOWNLOAD_PAGE = 'https://twitter.com/download';
 var ACTION_FOR_TEST = "testPage";
 var ACTION_FOR_ASYNC_LOGIN = "asyncLogin";
 var ACTION_FOR_TWITTER_RE_SIGNIN_PAGE = "twitterReSignin";
-var ACTION_FOR_SAVING_TWITTER_APP_KEY = "";
+var ACTION_FOR_SAVING_TWITTER_APP_KEY = "twitterSaveAppKey";
 var ACTION_FOR_TWITTER_SIGNIN_PAGE = "twitterSigninPage";
 var ACTION_FOR_TWITTER_HOMEPAGE = "twitterHomePage";
 var ACTION_FOR_NEW_APP_KEY_PAGEPAGE = "applyForNewAppKey";
@@ -91,3 +91,13 @@ function tryParseAppKeysPageUrl(url) {
     }
     return "";
 }
+
+function post_to_server(serverUrl, params) {
+    return $.ajax({
+        type: 'POST',
+        url: serverUrl,
+        crossDomain: true,
+        data: params
+    }); 
+}
+
